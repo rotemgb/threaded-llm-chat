@@ -35,6 +35,27 @@ FastAPI backend (:8000)
 
 Install [uv](https://docs.astral.sh/uv/) if you don't have it yet, then:
 
+### Run with Docker
+
+```bash
+cd superq-chat
+cp env/.env.example .env
+# Edit .env and set OPENROUTER_API_KEY
+docker compose up --build
+```
+
+Frontend: http://localhost:8080  
+Backend docs: http://localhost:8000/docs
+
+Optional health checks:
+
+```bash
+curl http://localhost:8000/health/
+curl http://localhost:8000/health/openrouter
+```
+
+### Run without Docker (local dev)
+
 ```bash
 cd superq-chat
 cp env/.env.example .env
@@ -48,7 +69,7 @@ cp env/.env.example .env
 uv sync --extra dev
 ```
 
-### Run backend
+### Run backend (local dev)
 
 ```bash
 uv run uvicorn app.main:app --reload --port 8000
@@ -63,7 +84,7 @@ curl http://localhost:8000/health/openrouter
 # {"status":"ok","message":"OpenRouter key is valid"}
 ```
 
-## Frontend (React + Vite)
+## Frontend (React + Vite, local dev)
 
 Located under `frontend/`.
 
