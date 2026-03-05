@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="superq-chat: Multi-Agent Chat Threading Service",
+        title="threaded-llm-chat: Multi-Agent Chat Threading Service",
         lifespan=lifespan,
     )
 

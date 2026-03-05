@@ -39,7 +39,7 @@ class OpenRouterProvider(LLMProvider):
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "http://localhost:5173",
-            "X-Title": "superq-chat",
+            "X-Title": "threaded-llm-chat",
         }
         payload: dict[str, Any] = {
             "model": model,

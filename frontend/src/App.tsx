@@ -46,7 +46,7 @@ const App: React.FC = () => {
     <div className="app">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1>superq-chat</h1>
+          <h1>threaded-llm-chat</h1>
           <button onClick={handleCreateThread}>New thread</button>
         </div>
         <div className="thread-list">

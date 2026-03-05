@@ -1,4 +1,4 @@
-# superq-chat
+# threaded-llm-chat
 
 Multi-agent chat threading service with hierarchical summaries, built with FastAPI, SQLAlchemy, OpenRouter, and a React frontend.
 
@@ -38,7 +38,7 @@ Install [uv](https://docs.astral.sh/uv/) if you don't have it yet, then:
 ### Run with Docker
 
 ```bash
-cd superq-chat
+cd threaded-llm-chat
 cp env/.env.example .env
 # Edit .env and set OPENROUTER_API_KEY
 docker compose up --build
@@ -57,7 +57,7 @@ curl http://localhost:8000/health/openrouter
 ### Run without Docker (local dev)
 
 ```bash
-cd superq-chat
+cd threaded-llm-chat
 cp env/.env.example .env
 # Edit .env and set your OPENROUTER_API_KEY (required)
 # Configure models via MODELS JSON (see .env.example)

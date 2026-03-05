@@ -1,5 +1,5 @@
 [project]
-name = "superq-chat"
+name = "threaded-llm-chat"
 version = "0.1.0"
 description = "Multi-agent chat threading service with hierarchical summaries, built with FastAPI, SQLAlchemy, OpenRouter, and React."
 requires-python = ">=3.12"

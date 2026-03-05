@@ -36,7 +36,7 @@ async def health_openrouter() -> dict:
                 "Authorization": f"Bearer {key}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "http://localhost:5173",
-                "X-Title": "superq-chat",
+                "X-Title": "threaded-llm-chat",
             },
             json={
                 "model": "openai/gpt-3.5-turbo",
