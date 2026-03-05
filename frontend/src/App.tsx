@@ -46,8 +46,8 @@ const App: React.FC = () => {
     <div className="app">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1>threaded-llm-chat</h1>
-          <button onClick={handleCreateThread}>New thread</button>
+          <h1>ChatGenie</h1>
+          <button onClick={handleCreateThread}>New Chat</button>
         </div>
         <div className="thread-list">
           {threads.map((t) => (
@@ -59,7 +59,7 @@ const App: React.FC = () => {
               onClick={() => setActiveThreadId(t.id)}
             >
               <span className="thread-title">
-                {t.title || `Thread #${t.id}`}
+                {t.title || `Chat #${t.id}`}
               </span>
             </button>
           ))}
@@ -71,7 +71,7 @@ const App: React.FC = () => {
           <div>
             <h2>{activeThread?.title || "Conversation"}</h2>
             <p className="subtitle">
-              Multi-agent chat with hierarchical summaries.
+              Memory-aware chat system with threaded conversations, model switching, and automatic summarization.
             </p>
           </div>
           <div className="model-select">
