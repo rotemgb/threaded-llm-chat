@@ -1,92 +1,104 @@
 # threaded-llm-chat
 
-Multi-agent chat threading service with hierarchical summaries, built with FastAPI, SQLAlchemy, OpenRouter, and a React frontend.
+Multi-model chat threading service with hierarchical summaries, built with **FastAPI**, **SQLAlchemy**, **OpenRouter**, and a **React** frontend.
+
+---
+
+## Quick start
+
+```bash
+git clone <repo-url>
+cd threaded-llm-chat
+cp env/.env.example .env
+# Edit .env and set OPENROUTER_API_KEY (required)
+docker compose up --build
+```
+
+- **Frontend:** http://localhost:8080  
+- **API docs:** http://localhost:8000/docs  
+
+---
+
+## What this does
+
+- **Threads** with a persistent system prompt and per-message model choice (e.g. `primary` vs `quality`).
+- **Bounded context**: system prompt + latest global summary + recent local summaries + recent messages, so long threads stay within the LLM context window.
+- **Hierarchical summarization**: Level 1 (local) every 10 messages, Level 2 (global) every 3 locals; runs in the background so chat stays fast.
+- **Optional LLMOps**: in-memory TTL cache and in-flight request coalescing for identical LLM requests.
+
+<img src="docs/screenshots/01-thread-creation.png" alt="Thread creation Model Selection Dropdwon" width="900">
+
+*Creating a new chat thread and model selection dropdown.*
+
+---
 
 ## Architecture
 
+![Architecture flow](docs/architecture-flow.png)
+
+High-level components:
+
 ```
-Browser (React :5173)
+Browser (React :5173 dev / :8080 Docker)
   │
   ▼
 FastAPI backend (:8000)
-  ├── ServiceContainer ─ centralized dependency composition and factory boundaries
-  ├── ThreadChatService ─ use-case layer for message flow orchestration
-  ├── LLMRouter        ─ resolves alias via RoutingPolicy → ModelCatalog → provider
-  │     └── LLMProvider protocol (OpenRouterProvider, extensible for others)
-  ├── UnitOfWork       ─ transaction boundary abstraction (SQLAlchemy impl)
-  ├── SummaryService   ─ hierarchical auto-summarization (local + global)
-  ├── CacheQueue       ─ request fingerprint based coalescing & caching
+  ├── ServiceContainer   — dependency composition at startup (app.state)
+  ├── ThreadChatService  — orchestrates message flow, context, LLM, persistence
+  ├── ContextService     — builds message list (system + summaries + recent messages)
+  ├── LLMRouter          — model alias → ModelCatalog → provider; CacheQueue in front
+  │     └── LLMProvider protocol (OpenRouterProvider; extensible)
+  ├── SummaryWorker      — async job, own UoW; calls SummaryService + LLMRouter
+  ├── SummaryService     — Level 1 / Level 2 summarization
+  ├── SqlAlchemyUnitOfWork — thread, message, summary repos
   └── SQLite (SQLAlchemy ORM)
 ```
 
 ## Backend (FastAPI + uv)
 
-- Python 3.12
-- FastAPI app in `app/`
-- SQLite + SQLAlchemy models in `app/db/`
-- LLM provider abstraction in `app/integration/llm_provider.py` (Protocol)
-- OpenRouter provider in `app/integration/openrouter/`
-- Model catalog + routing policy in `app/integration/model_registry.py`
-- Request/use-case boundaries in `app/core/container.py` and `app/domain/services/thread_chat_service.py`
-- Hierarchical summarization and context management in `app/domain/services/`
-- Dependency management via **uv** and `pyproject.toml`
-
-### Setup
-
-Install [uv](https://docs.astral.sh/uv/) if you don't have it yet, then:
+- **Python 3.12** · Dependency management via [uv](https://docs.astral.sh/uv/) and `pyproject.toml`
+- **App layout:** FastAPI app in `app/`; SQLite + SQLAlchemy in `app/db/`; domain services in `app/domain/services/`; OpenRouter + model registry in `app/integration/`
+- **LLM layer:** `LLMProvider` Protocol in `app/integration/llm_provider.py`; OpenRouter in `app/integration/openrouter/`; model catalog + routing in `app/integration/model_registry.py`
+- **Orchestration:** `ServiceContainer` in `app/core/container.py`; `ThreadChatService` in `app/domain/services/thread_chat_service.py`; context and summarization in `app/domain/services/`
 
 ### Run with Docker
 
+From the project root:
+
 ```bash
-cd threaded-llm-chat
 cp env/.env.example .env
-# Edit .env and set OPENROUTER_API_KEY
+# Edit .env and set OPENROUTER_API_KEY (required)
 docker compose up --build
 ```
 
-Frontend: http://localhost:8080  
-Backend docs: http://localhost:8000/docs
+- Frontend: http://localhost:8080  
+- API docs: http://localhost:8000/docs  
 
-Optional health checks:
+Health checks:
 
 ```bash
 curl http://localhost:8000/health/
 curl http://localhost:8000/health/openrouter
 ```
 
-### Run without Docker (local dev)
+### Run locally (development)
+
+1. Install [uv](https://docs.astral.sh/uv/) if needed.
+2. From the project root:
 
 ```bash
-cd threaded-llm-chat
 cp env/.env.example .env
-# Edit .env and set your OPENROUTER_API_KEY (required)
-# Configure models via MODELS JSON (see .env.example)
-# Set DEFAULT_CHAT_MODEL_ALIAS to one alias from MODELS
-```
-
-```bash
-# Install all dependencies (including dev/test)
+# Edit .env: set OPENROUTER_API_KEY; optionally adjust MODELS and DEFAULT_CHAT_MODEL_ALIAS
 uv sync --extra dev
-```
-
-### Run backend (local dev)
-
-```bash
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
-Interactive API docs: http://localhost:8000/docs
+- API docs: http://localhost:8000/docs  
+- Verify OpenRouter: `curl http://localhost:8000/health/openrouter`
 
-### Verify your API key
+## Frontend (React + Vite)
 
-```bash
-curl http://localhost:8000/health/openrouter
-# {"status":"ok","message":"OpenRouter key is valid"}
-```
-
-## Frontend (React + Vite, local dev)
-
-Located under `frontend/`.
+Located under `frontend/`. For local dev with the backend on port 8000:
 
 ```bash
 cd frontend
@@ -94,7 +106,12 @@ npm install
 npm run dev
 ```
 
-The dev server runs on http://localhost:5173 and talks to the FastAPI backend at http://localhost:8000.
+- Dev server: http://localhost:5173 (proxies API to backend)
+- Default backend: `http://localhost:8000`; override with `VITE_API_BASE_URL` in `.env` if needed
+
+<img src="docs/screenshots/02-model-switch.jpg" alt="Model switching mid-conversation" width="600">
+
+*Switching between models (e.g. default → primary → quality) mid-thread via the model dropdown without interrupting conversation memory.*
 
 ## Tests
 
@@ -102,6 +119,31 @@ The dev server runs on http://localhost:5173 and talks to the FastAPI backend at
 uv sync --extra dev   # if not done already
 uv run pytest -v
 ```
+
+Test suite covers health endpoints, full thread/message flow, and swappability boundaries (e.g. in-memory vs mocked providers).
+
+## Project structure
+
+```
+threaded-llm-chat/
+├── app/
+│   ├── api/routes/       # FastAPI route handlers (health, threads, messages, summaries)
+│   ├── core/             # Config, ServiceContainer, dependencies
+│   ├── db/               # SQLAlchemy models, UoW, repositories
+│   ├── domain/services/  # ThreadChatService, ContextService, SummaryService, LLMRouter, SummaryWorker
+│   ├── integration/      # LLM provider protocol, OpenRouter client, model registry, cache queue
+│   └── schemas/          # Pydantic request/response models
+├── frontend/             # React + Vite app
+├── env/.env.example      # Example environment variables
+├── docs/                 # Presentation, architecture diagram
+└── tests/                # Pytest tests
+```
+
+## Documentation
+
+- **API:** Interactive OpenAPI docs at http://localhost:8000/docs when the backend is running
+- **Architecture:** Diagram at [docs/architecture-flow.png](docs/architecture-flow.png)
+- **Presentation:** [docs/presentation.md](docs/presentation.md) (Marp deck; export to PDF with `npx @marp-team/marp-cli docs/presentation.md --pdf`)
 
 ## Environment Variables
 
@@ -246,6 +288,10 @@ curl http://localhost:8000/threads/1/messages?limit=50
 curl http://localhost:8000/threads/1/summaries
 ```
 
+<img src="docs/screenshots/03-summaries.png" alt="Summary panel showing local and global summaries" width="600">
+
+*The summary panel displays Level 1 (local) and Level 2 (global) summaries as the conversation grows.*
+
 Example summary response:
 
 ```json
@@ -281,5 +327,5 @@ Example summary response:
   - **Level 2 (global):** high-level summary after M local summaries
 - Context building that combines system prompt, summaries, and recent messages
 - Request-fingerprint based cache + request coalescing (swappable via `CacheQueueBackend` protocol)
-- Dedicated summarization model support (optional)
+- Dedicated summarization model support
 - OpenRouter key verification endpoint (`GET /health/openrouter`)
