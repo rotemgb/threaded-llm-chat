@@ -18,6 +18,7 @@ export function useChatStore(api: ChatApiPort) {
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [latestSummary, setLatestSummary] = useState<string | null>(null);
+  const [summaries, setSummaries] = useState<Summary[]>([]);
   const [input, setInput] = useState("");
   const [model, setModel] = useState<string>("");
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([]);
@@ -41,6 +42,7 @@ export function useChatStore(api: ChatApiPort) {
   const loadSummaries = useCallback(
     async (threadId: number) => {
       const data: Summary[] = await api.listSummaries(threadId);
+      setSummaries(data);
       setLatestSummary(selectLatestSummaryText(data));
     },
     [api]
@@ -100,6 +102,7 @@ export function useChatStore(api: ChatApiPort) {
     setActiveThreadId,
     messages,
     latestSummary,
+    summaries,
     input,
     setInput,
     model,

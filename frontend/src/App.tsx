@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 
 import { HttpChatApi } from "./api/httpChatApi";
 import { useChatStore } from "./state/chatStore";
+import type { Summary } from "./models/summaryViewModel";
 
 const App: React.FC = () => {
   const api = useMemo(() => new HttpChatApi(), []);
@@ -12,6 +13,7 @@ const App: React.FC = () => {
     setActiveThreadId,
     messages,
     latestSummary,
+    summaries,
     input,
     setInput,
     model,
@@ -23,13 +25,10 @@ const App: React.FC = () => {
   } = useChatStore(api);
 
   async function handleCreateThread() {
-    const systemPrompt = window.prompt(
-      "System prompt for this thread:",
-      "You are a helpful assistant."
-    );
-    if (!systemPrompt) return;
-    const title = window.prompt("Optional title:", "") || null;
-    await createThread({ system_prompt: systemPrompt, title });
+    await createThread({
+      system_prompt: "You are a helpful assistant.",
+      title: null,
+    });
   }
 
   async function handleSend() {
@@ -47,6 +46,9 @@ const App: React.FC = () => {
     if (role === "assistant") return "Assistant";
     return role;
   };
+
+  const getSummaryLabel = (s: Summary) =>
+    s.level === 2 ? "Global Summary" : "Local Summary";
 
   return (
     <div className="app">
@@ -98,8 +100,29 @@ const App: React.FC = () => {
           </div>
         </header>
         <section className="summary-panel">
-          <h3>Summary</h3>
-          <p>{latestSummary || "No summary yet."}</p>
+          <h3>Summaries</h3>
+          {summaries.length > 0 ? (
+            <div className="summary-list">
+              {summaries.map((s) => (
+                <div
+                  key={s.id}
+                  className={`summary-card summary-level-${s.level}`}
+                >
+                  <div className="summary-header">
+                    <span className="summary-label">{getSummaryLabel(s)}</span>
+                    <span className="summary-time">
+                      {new Date(s.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="summary-content">
+                    <ReactMarkdown>{s.summary_text}</ReactMarkdown>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="empty">No summaries yet.</p>
+          )}
         </section>
         <section className="messages-panel">
           <div className="messages">

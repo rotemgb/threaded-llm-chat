@@ -105,17 +105,81 @@ body {
   padding: 12px 20px;
   border-bottom: 1px solid #1f2937;
   background: rgba(15, 23, 42, 0.7);
+  max-height: 280px;
+  overflow-y: auto;
 }
 
 .summary-panel h3 {
-  margin: 0 0 4px;
+  margin: 0 0 8px;
   font-size: 0.95rem;
 }
 
-.summary-panel p {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #e5e7eb;
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summary-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  align-self: flex-start;
+}
+
+.summary-level-1 {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+.summary-level-2 {
+  background: #172554;
+  border: 1px solid #1e40af;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.summary-label {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.summary-level-1 .summary-label {
+  color: #94a3b8;
+}
+
+.summary-level-2 .summary-label {
+  color: #60a5fa;
+}
+
+.summary-time {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.summary-content {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.summary-content p {
+  margin: 0.35rem 0;
+}
+
+.summary-content p:first-child {
+  margin-top: 0;
+}
+
+.summary-content p:last-child {
+  margin-bottom: 0;
 }
 
 .messages-panel {
