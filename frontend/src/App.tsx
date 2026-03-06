@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 
 import { HttpChatApi } from "./api/httpChatApi";
 import { useChatStore } from "./state/chatStore";
@@ -41,6 +42,11 @@ const App: React.FC = () => {
   }
 
   const activeThread = threads.find((t) => t.id === activeThreadId) ?? null;
+  const getRoleLabel = (role: string) => {
+    if (role === "user") return "You";
+    if (role === "assistant") return "Assistant";
+    return role;
+  };
 
   return (
     <div className="app">
@@ -99,8 +105,10 @@ const App: React.FC = () => {
           <div className="messages">
             {messages.map((m) => (
               <div key={m.id} className={`msg msg-${m.role}`}>
-                <span className="msg-role">{m.role.toUpperCase()}:</span>
-                <span className="msg-content">{m.content}</span>
+                <span className="msg-role">{getRoleLabel(m.role)}:</span>
+                <div className="msg-content">
+                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                </div>
               </div>
             ))}
             {!messages.length && (
